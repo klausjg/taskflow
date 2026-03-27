@@ -13,28 +13,44 @@
   <meta name="apple-mobile-web-app-title" content="Task Flow">
 
   <style>
-    body { background: #0d1110; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; font-family: sans-serif; color: #fff; overflow: hidden; }
-    .container { text-align: center; padding: 20px; width: 100%; }
+    body { 
+      background: #0d1110; 
+      display: flex; 
+      align-items: center; 
+      justify-content: center; 
+      height: 100vh; 
+      margin: 0; 
+      font-family: -apple-system, sans-serif; 
+      color: #fff; 
+    }
+
+    .container { 
+      text-align: center; 
+      padding: 20px; 
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
     
-    /* 아이콘 찌그러짐 방지 핵심 CSS */
+    /* [수정] 아이콘 찌그러짐 절대 방지 설정 */
     .icon-preview { 
       width: 120px; 
       height: 120px; 
+      aspect-ratio: 1 / 1; /* 강제로 1:1 비율 고정 */
       border-radius: 26px; 
-      box-shadow: 0 10px 40px rgba(0,0,0,0.6); 
+      box-shadow: 0 12px 40px rgba(0,0,0,0.7); 
       margin-bottom: 25px; 
       border: 1px solid #212924;
-      object-fit: cover; /* 비율 유지하며 꽉 채움 */
+      object-fit: cover; /* 이미지가 정사각이 아니더라도 꽉 채움 */
+      flex-shrink: 0; /* 부모 요소에 의해 줄어들지 않음 */
     }
 
-    h2 { color: #a5d6a7; margin-bottom: 12px; font-size: 24px; letter-spacing: -0.5px; }
-    p { color: #888; font-size: 15px; line-height: 1.6; margin: 0; }
-    .footer { position: fixed; bottom: 50px; font-size: 13px; color: #444; width: 100%; text-align: center; }
+    h2 { color: #a5d6a7; margin-bottom: 12px; font-size: 24px; font-weight: 700; letter-spacing: -0.5px; }
+    p { color: #888; font-size: 15px; line-height: 1.6; margin: 0; max-width: 250px; }
+    .footer { position: fixed; bottom: 50px; font-size: 13px; color: #444; }
     
-    /* 초기 상태는 둘 다 숨김 */
     #install-ui, #loading-ui { display: none; }
 
-    /* 로딩 애니메이션 */
     .flowing-text { 
       color: #1b5e20; 
       font-weight: bold; 
@@ -42,26 +58,24 @@
       letter-spacing: 4px; 
       animation: pulse 1.5s infinite ease-in-out; 
     }
-    @keyframes pulse { 0%, 100% { opacity: 0.3; transform: scale(0.98); } 50% { opacity: 1; transform: scale(1); } }
+    @keyframes pulse { 0%, 100% { opacity: 0.3; } 50% { opacity: 1; } }
   </style>
 
   <script>
-    // [확인] 여기에 실제 구글 웹앱 URL이 정확히 들어가 있는지 꼭 확인하세요!
+    // [확인] 본인의 실제 Google Apps Script 배포 URL을 정확히 넣으세요
     const APP_URL = "여기에_구글_웹앱_배포_URL_붙여넣기";
 
     function init() {
-      // Standalone 모드 감지 (홈 화면 추가 여부)
       const isStandalone = window.navigator.standalone === true || 
                            window.matchMedia('(display-mode: standalone)').matches;
 
       if (isStandalone) {
-        // [실행 모드] 즉시 이동
         document.getElementById('loading-ui').style.display = 'block';
+        // 런처에서 앱으로 넘어가는 딜레이를 약간 줍니다
         setTimeout(() => {
-          window.location.replace(APP_URL); // history를 남기지 않고 이동
-        }, 300);
+          window.location.replace(APP_URL);
+        }, 400);
       } else {
-        // [설치 모드] 안내 화면 표시
         document.getElementById('install-ui').style.display = 'block';
       }
     }
@@ -72,8 +86,8 @@
   <div id="install-ui" class="container">
     <img src="icon.png" class="icon-preview">
     <h2>Task Flow</h2>
-    <p>완성도 높은 업무 환경을 위해<br><strong>'홈 화면에 추가'</strong>를 진행해 주세요.</p>
-    <div class="footer">아이콘 추가 시 전용 앱으로 작동합니다.</div>
+    <p>세련된 업무 경험을 위해<br><strong>'홈 화면에 추가'</strong>를 해주세요.</p>
+    <div class="footer">설치 후 아이콘을 눌러 실행하세요.</div>
   </div>
 
   <div id="loading-ui" class="container">
