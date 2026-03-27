@@ -13,27 +13,45 @@
   <meta name="apple-mobile-web-app-title" content="Task Flow">
 
   <style>
-    body { background: #0d1110; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; font-family: sans-serif; }
-    .loader { color: #a5d6a7; text-align: center; animation: pulse 1.5s infinite; }
-    @keyframes pulse { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }
+    body { background: #0d1110; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; font-family: sans-serif; color: #fff; overflow: hidden; }
+    .container { text-align: center; padding: 20px; transition: opacity 0.5s; }
+    .icon-preview { width: 120px; height: 120px; border-radius: 24px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); margin-bottom: 20px; border: 1px solid #212924; }
+    h2 { color: #a5d6a7; margin-bottom: 10px; }
+    p { color: #888; font-size: 14px; line-height: 1.6; }
+    .footer { position: fixed; bottom: 40px; font-size: 12px; color: #555; }
+    #install-ui { display: none; } /* 기본적으로 숨김 */
   </style>
 
   <script>
-    // [중요] 여기에 현재 사용 중인 Google Apps Script 배포 URL을 넣으세요
-    const APP_URL = "https://script.google.com/macros/s/AKfycbxqcaUe4t4pUVgmIBMOPuLXEtW0bhqbVk-e1lx-tnSxKKLN3nOtXE14imUxUcDRuxKJYw/exec";
+    const APP_URL = "여기에_구글_웹앱_배포_URL_붙여넣기";
 
-    window.onload = function() {
-      // 0.5초 대기 후 이동 (아이콘 인식을 확실히 하기 위함)
-      setTimeout(() => {
+    function init() {
+      // 1. 홈 화면에서 실행되었는지 확인 (Standalone 모드)
+      const isStandalone = window.navigator.standalone === true || window.matchMedia('(display-mode: standalone)').matches;
+
+      if (isStandalone) {
+        // [실행 모드] 이미 설치된 상태라면 즉시 구글 웹앱으로 이동
         window.location.href = APP_URL;
-      }, 500);
-    };
+      } else {
+        // [설치 모드] 일반 브라우저 접속이라면 안내 화면 노출
+        document.getElementById('install-ui').style.display = 'block';
+        document.getElementById('loading-ui').style.display = 'none';
+      }
+    }
   </script>
 </head>
-<body>
-  <div class="loader">
+<body onload="init()">
+
+  <div id="install-ui" class="container">
+    <img src="icon.png" class="icon-preview">
     <h2>Task Flow</h2>
-    <p>Launching your workspace...</p>
+    <p>더 빠르고 간편한 업무 관리를 위해<br><strong>'홈 화면에 추가'</strong>를 해주세요.</p>
+    <div class="footer">아이콘 추가 후에는 앱처럼 바로 실행됩니다.</div>
   </div>
+
+  <div id="loading-ui" class="container">
+    <div style="color: #1b5e20; font-weight: bold; font-size: 1.2em; letter-spacing: 2px;">FLOWING...</div>
+  </div>
+
 </body>
 </html>
