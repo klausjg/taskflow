@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Task Flow</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  
+  <link rel="apple-touch-icon" href="icon.png">
+  <link rel="icon" type="image/png" href="icon.png">
+  
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Task Flow">
+
+  <style>
+    body { background: #0d1110; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; font-family: sans-serif; }
+    .loader { color: #a5d6a7; text-align: center; animation: pulse 1.5s infinite; }
+    @keyframes pulse { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }
+  </style>
+
+  <script>
+    // [중요] 여기에 현재 사용 중인 Google Apps Script 배포 URL을 넣으세요
+    const APP_URL = "https://script.google.com/macros/s/AKfycbxqcaUe4t4pUVgmIBMOPuLXEtW0bhqbVk-e1lx-tnSxKKLN3nOtXE14imUxUcDRuxKJYw/exec";
+
+    window.onload = function() {
+      // 0.5초 대기 후 이동 (아이콘 인식을 확실히 하기 위함)
+      setTimeout(() => {
+        window.location.href = APP_URL;
+      }, 500);
+    };
+  </script>
+</head>
+<body>
+  <div class="loader">
+    <h2>Task Flow</h2>
+    <p>Launching your workspace...</p>
+  </div>
+</body>
+</html>
