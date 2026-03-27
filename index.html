@@ -14,28 +14,55 @@
 
   <style>
     body { background: #0d1110; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; font-family: sans-serif; color: #fff; overflow: hidden; }
-    .container { text-align: center; padding: 20px; transition: opacity 0.5s; }
-    .icon-preview { width: 120px; height: 120px; border-radius: 24px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); margin-bottom: 20px; border: 1px solid #212924; }
-    h2 { color: #a5d6a7; margin-bottom: 10px; }
-    p { color: #888; font-size: 14px; line-height: 1.6; }
-    .footer { position: fixed; bottom: 40px; font-size: 12px; color: #555; }
-    #install-ui { display: none; } /* 기본적으로 숨김 */
+    .container { text-align: center; padding: 20px; width: 100%; }
+    
+    /* 아이콘 찌그러짐 방지 핵심 CSS */
+    .icon-preview { 
+      width: 120px; 
+      height: 120px; 
+      border-radius: 26px; 
+      box-shadow: 0 10px 40px rgba(0,0,0,0.6); 
+      margin-bottom: 25px; 
+      border: 1px solid #212924;
+      object-fit: cover; /* 비율 유지하며 꽉 채움 */
+    }
+
+    h2 { color: #a5d6a7; margin-bottom: 12px; font-size: 24px; letter-spacing: -0.5px; }
+    p { color: #888; font-size: 15px; line-height: 1.6; margin: 0; }
+    .footer { position: fixed; bottom: 50px; font-size: 13px; color: #444; width: 100%; text-align: center; }
+    
+    /* 초기 상태는 둘 다 숨김 */
+    #install-ui, #loading-ui { display: none; }
+
+    /* 로딩 애니메이션 */
+    .flowing-text { 
+      color: #1b5e20; 
+      font-weight: bold; 
+      font-size: 1.1em; 
+      letter-spacing: 4px; 
+      animation: pulse 1.5s infinite ease-in-out; 
+    }
+    @keyframes pulse { 0%, 100% { opacity: 0.3; transform: scale(0.98); } 50% { opacity: 1; transform: scale(1); } }
   </style>
 
   <script>
-    const APP_URL = "https://klausjg.github.io/taskflow/";
+    // [확인] 여기에 실제 구글 웹앱 URL이 정확히 들어가 있는지 꼭 확인하세요!
+    const APP_URL = "여기에_구글_웹앱_배포_URL_붙여넣기";
 
     function init() {
-      // 1. 홈 화면에서 실행되었는지 확인 (Standalone 모드)
-      const isStandalone = window.navigator.standalone === true || window.matchMedia('(display-mode: standalone)').matches;
+      // Standalone 모드 감지 (홈 화면 추가 여부)
+      const isStandalone = window.navigator.standalone === true || 
+                           window.matchMedia('(display-mode: standalone)').matches;
 
       if (isStandalone) {
-        // [실행 모드] 이미 설치된 상태라면 즉시 구글 웹앱으로 이동
-        window.location.href = APP_URL;
+        // [실행 모드] 즉시 이동
+        document.getElementById('loading-ui').style.display = 'block';
+        setTimeout(() => {
+          window.location.replace(APP_URL); // history를 남기지 않고 이동
+        }, 300);
       } else {
-        // [설치 모드] 일반 브라우저 접속이라면 안내 화면 노출
+        // [설치 모드] 안내 화면 표시
         document.getElementById('install-ui').style.display = 'block';
-        document.getElementById('loading-ui').style.display = 'none';
       }
     }
   </script>
@@ -45,12 +72,12 @@
   <div id="install-ui" class="container">
     <img src="icon.png" class="icon-preview">
     <h2>Task Flow</h2>
-    <p>더 빠르고 간편한 업무 관리를 위해<br><strong>'홈 화면에 추가'</strong>를 해주세요.</p>
-    <div class="footer">아이콘 추가 후에는 앱처럼 바로 실행됩니다.</div>
+    <p>완성도 높은 업무 환경을 위해<br><strong>'홈 화면에 추가'</strong>를 진행해 주세요.</p>
+    <div class="footer">아이콘 추가 시 전용 앱으로 작동합니다.</div>
   </div>
 
   <div id="loading-ui" class="container">
-    <div style="color: #1b5e20; font-weight: bold; font-size: 1.2em; letter-spacing: 2px;">FLOWING...</div>
+    <div class="flowing-text">FLOWING...</div>
   </div>
 
 </body>
