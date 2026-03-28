@@ -14,13 +14,31 @@
 
   <style>
     :root { --indigo: #4f46e5; --violet: #7c3aed; --bg: #0d1110; }
-    body { background: var(--bg); display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; font-family: -apple-system, sans-serif; color: #fff; overflow: hidden; }
     
-    .container { text-align: center; padding: 30px; display: flex; flex-direction: column; align-items: center; width: 100%; }
-    
-    /* [핵심] 모든 UI를 처음엔 숨깁니다 */
-    #install-ui, #loading-ui { display: none; }
+    /* 화면 전체 설정 */
+    body, html { 
+      background: var(--bg); 
+      margin: 0; padding: 0; 
+      width: 100%; height: 100%; 
+      overflow: hidden; 
+      font-family: -apple-system, sans-serif;
+    }
 
+    /* 두 화면을 완전히 겹쳐놓는 공통 레이아웃 */
+    .full-screen {
+      position: absolute; /* 절대 좌표로 겹침 */
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      display: none; /* 기본은 숨김 */
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      box-sizing: border-box;
+      padding: 30px;
+    }
+
+    /* 아이콘 스타일 */
     .icon-preview { 
       width: 110px; height: 110px; border-radius: 24px; 
       box-shadow: 0 20px 50px rgba(0,0,0,0.8); 
@@ -30,6 +48,7 @@
 
     h2 { color: #a5d6a7; margin-bottom: 15px; font-size: 26px; font-weight: 800; }
     
+    /* 앱 설치 가이드 버튼 */
     .guide-button {
       background: linear-gradient(135deg, var(--indigo), var(--violet));
       color: white; padding: 14px 28px; border-radius: 50px;
@@ -37,14 +56,16 @@
       box-shadow: 0 10px 20px rgba(79, 70, 229, 0.3);
     }
 
+    /* 화살표 가이드 오버레이 */
     #guide-overlay {
       display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
       background: rgba(0,0,0,0.85); z-index: 9999; backdrop-filter: blur(8px);
     }
-    .instruction { position: absolute; bottom: 100px; width: 100%; text-align: center; padding: 20px; box-sizing: border-box; }
+    .instruction { position: absolute; bottom: 100px; width: 100%; text-align: center; padding: 20px; }
     .arrow { font-size: 50px; color: var(--indigo); animation: bounce 1s infinite; margin-top: 20px; }
     @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(15px); } }
 
+    /* 로딩 텍스트 애니메이션 */
     .flowing-text { color: #1b5e20; font-weight: bold; font-size: 1.1em; letter-spacing: 4px; animation: pulse 1.5s infinite; }
     @keyframes pulse { 0%, 100% { opacity: 0.3; } 50% { opacity: 1; } }
     
@@ -55,35 +76,47 @@
     const APP_URL = "https://script.google.com/macros/s/AKfycbwD_gMZLQSWU1Nn80nmIxMtmcicION07i8unILf0RmUj7aWQ437J4Gf0zUcq2ZQl8sN/exec";
 
     function init() {
-      // 1. 홈 화면 여부 판단
       const isStandalone = window.navigator.standalone === true || 
                            window.matchMedia('(display-mode: standalone)').matches;
 
+      // 1. 모든 화면을 먼저 숨깁니다 (안전장치)
+      document.getElementById('install-ui').style.display = 'none';
+      document.getElementById('loading-ui').style.display = 'none';
+
       if (isStandalone) {
-        // [실행 모드] 로딩 화면만 보여주고 즉시 이동
-        document.getElementById('loading-ui').style.display = 'block';
+        // [실행 모드] 로딩 화면만 표시
+        const loadingUI = document.getElementById('loading-ui');
+        loadingUI.style.display = 'flex'; // flex로 변경하여 정렬 유지
+        
         setTimeout(function() {
           window.location.href = APP_URL;
         }, 300);
       } else {
-        // [설치 가이드 모드] 가이드 화면만 보여줌
-        document.getElementById('install-ui').style.display = 'block';
+        // [설치 모드] 가이드 화면만 표시
+        const installUI = document.getElementById('install-ui');
+        installUI.style.display = 'flex'; // flex로 변경하여 정렬 유지
       }
     }
 
-    // DOM이 로드되자마자 실행 (onload보다 빠름)
+    // 문서 로드 즉시 실행
     document.addEventListener("DOMContentLoaded", init);
   </script>
 </head>
 <body>
 
-  <div id="install-ui" class="container">
+  <div id="install-ui" class="full-screen">
     <img src="icon.png" class="icon-preview">
     <h2>Task Flow</h2>
     <p style="color:#888; margin-bottom: 30px; line-height: 1.6;">
       스마트한 업무 관리를 위해<br>아래 버튼을 눌러 앱을 설치하세요.
     </p>
     <button class="guide-button" onclick="document.getElementById('guide-overlay').style.display='block'">앱 설치 가이드</button>
+  </div>
+
+  <div id="loading-ui" class="full-screen">
+    <img src="icon.png" class="icon-preview" style="width:80px; height:80px; box-shadow:none; opacity:0.5;">
+    <div class="flowing-text">FLOWING...</div>
+    <div class="fallback-msg" onclick="window.location.href=APP_URL">페이지가 멈췄다면 여기를 터치하세요.</div>
   </div>
 
   <div id="guide-overlay" onclick="this.style.display='none'">
@@ -95,12 +128,6 @@
       </p>
       <div class="arrow">↓</div>
     </div>
-  </div>
-
-  <div id="loading-ui" class="container">
-    <img src="icon.png" class="icon-preview" style="width:80px; height:80px; box-shadow:none; opacity:0.5;">
-    <div class="flowing-text">FLOWING...</div>
-    <div class="fallback-msg" onclick="window.location.href=APP_URL">페이지가 멈췄다면 여기를 터치하세요.</div>
   </div>
 
 </body>
