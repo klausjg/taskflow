@@ -18,80 +18,79 @@
     
     .container { text-align: center; padding: 30px; display: flex; flex-direction: column; align-items: center; width: 100%; }
     
-    /* 아이콘 찌그러짐 절대 방지 */
+    /* [핵심] 모든 UI를 처음엔 숨깁니다 */
+    #install-ui, #loading-ui { display: none; }
+
     .icon-preview { 
       width: 110px; height: 110px; border-radius: 24px; 
       box-shadow: 0 20px 50px rgba(0,0,0,0.8); 
       margin-bottom: 25px; border: 1px solid #212924;
-      object-fit: cover; flex-shrink: 0;
+      object-fit: cover; flex-shrink: 0; aspect-ratio: 1/1;
     }
 
     h2 { color: #a5d6a7; margin-bottom: 15px; font-size: 26px; font-weight: 800; }
     
-    /* 세련된 가이드 버튼 스타일 */
     .guide-button {
       background: linear-gradient(135deg, var(--indigo), var(--violet));
       color: white; padding: 14px 28px; border-radius: 50px;
-      font-weight: 700; font-size: 16px; text-decoration: none;
-      display: inline-block; transition: transform 0.2s;
+      font-weight: 700; font-size: 16px; border: none; cursor: pointer;
       box-shadow: 0 10px 20px rgba(79, 70, 229, 0.3);
-      cursor: pointer; border: none;
     }
-    .guide-button:active { transform: scale(0.95); }
 
-    /* 화살표 가이드 오버레이 */
     #guide-overlay {
       display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
       background: rgba(0,0,0,0.85); z-index: 9999; backdrop-filter: blur(8px);
     }
-    .instruction {
-      position: absolute; bottom: 100px; width: 100%; text-align: center;
-      padding: 20px; box-sizing: border-box;
-    }
+    .instruction { position: absolute; bottom: 100px; width: 100%; text-align: center; padding: 20px; box-sizing: border-box; }
     .arrow { font-size: 50px; color: var(--indigo); animation: bounce 1s infinite; margin-top: 20px; }
     @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(15px); } }
 
-    #loading-ui { display: none; }
     .flowing-text { color: #1b5e20; font-weight: bold; font-size: 1.1em; letter-spacing: 4px; animation: pulse 1.5s infinite; }
     @keyframes pulse { 0%, 100% { opacity: 0.3; } 50% { opacity: 1; } }
+    
+    .fallback-msg { color: #444; font-size: 12px; margin-top: 20px; text-decoration: underline; cursor: pointer; }
   </style>
 
   <script>
     const APP_URL = "https://script.google.com/macros/s/AKfycbwD_gMZLQSWU1Nn80nmIxMtmcicION07i8unILf0RmUj7aWQ437J4Gf0zUcq2ZQl8sN/exec";
 
-    function showGuide() {
-      document.getElementById('guide-overlay').style.display = 'block';
-    }
-
     function init() {
+      // 1. 홈 화면 여부 판단
       const isStandalone = window.navigator.standalone === true || 
                            window.matchMedia('(display-mode: standalone)').matches;
 
       if (isStandalone) {
+        // [실행 모드] 로딩 화면만 보여주고 즉시 이동
         document.getElementById('loading-ui').style.display = 'block';
-        window.location.replace(APP_URL);
+        setTimeout(function() {
+          window.location.href = APP_URL;
+        }, 300);
       } else {
+        // [설치 가이드 모드] 가이드 화면만 보여줌
         document.getElementById('install-ui').style.display = 'block';
       }
     }
+
+    // DOM이 로드되자마자 실행 (onload보다 빠름)
+    document.addEventListener("DOMContentLoaded", init);
   </script>
 </head>
-<body onload="init()">
+<body>
 
   <div id="install-ui" class="container">
     <img src="icon.png" class="icon-preview">
     <h2>Task Flow</h2>
     <p style="color:#888; margin-bottom: 30px; line-height: 1.6;">
-      데이터 기반의 스마트한 업무 흐름을 위해<br>아래 버튼을 눌러 앱을 설치하세요.
+      스마트한 업무 관리를 위해<br>아래 버튼을 눌러 앱을 설치하세요.
     </p>
-    <button class="guide-button" onclick="showGuide()">앱 설치하기 (무료)</button>
+    <button class="guide-button" onclick="document.getElementById('guide-overlay').style.display='block'">앱 설치 가이드</button>
   </div>
 
   <div id="guide-overlay" onclick="this.style.display='none'">
     <div class="instruction">
       <h3 style="color:#a5d6a7;">앱 설치 방법</h3>
       <p style="color:#ccc; font-size: 14px;">
-        1. 하단 메뉴의 <strong>공유(내보내기)</strong> 버튼을 클릭<br>
+        1. 하단 메뉴의 <strong>공유</strong> 버튼을 클릭<br>
         2. <strong>'홈 화면에 추가'</strong>를 선택하세요.
       </p>
       <div class="arrow">↓</div>
@@ -99,7 +98,9 @@
   </div>
 
   <div id="loading-ui" class="container">
+    <img src="icon.png" class="icon-preview" style="width:80px; height:80px; box-shadow:none; opacity:0.5;">
     <div class="flowing-text">FLOWING...</div>
+    <div class="fallback-msg" onclick="window.location.href=APP_URL">페이지가 멈췄다면 여기를 터치하세요.</div>
   </div>
 
 </body>
