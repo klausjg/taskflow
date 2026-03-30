@@ -5,12 +5,12 @@
   <title>Task Flow</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   
-  <!-- 수정된 코드: 파비콘 호환성 강화 및 캐시 무효화(?v=1) 적용 -->
-  <!-- 브라우저가 예전 이미지를 기억하지 못하도록 파일명 뒤에 ?v=1 이라는 꼬리표를 붙입니다. -->
-  <link rel="apple-touch-icon" sizes="180x180" href="icon.png?v=1">
-  <link rel="icon" type="image/png" sizes="32x32" href="icon.png?v=1">
-  <link rel="icon" type="image/png" sizes="16x16" href="icon.png?v=1">
-  <link rel="shortcut icon" href="icon.png?v=1">
+  <!-- 수정된 코드: 상대 경로(./) 명시 및 캐시 무효화(?v=2) 적용 -->
+  <!-- 🚨 [매우 중요] 깃허브 경로 오류를 막기 위해 파일명 앞에 './' 를 추가했습니다. -->
+  <link rel="apple-touch-icon" sizes="180x180" href="./icon.png?v=2">
+  <link rel="icon" type="image/png" sizes="32x32" href="./icon.png?v=2">
+  <link rel="icon" type="image/png" sizes="16x16" href="./icon.png?v=2">
+  <link rel="shortcut icon" href="./icon.png?v=2">
   
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -109,7 +109,8 @@
 <body>
 
   <div id="install-ui" class="full-screen">
-    <img src="icon.png" class="icon-preview">
+    <!-- 본문의 아이콘 이미지 경로도 동일하게 ./ 를 붙여줍니다 -->
+    <img src="./icon.png?v=2" class="icon-preview">
     <h2>Task Flow</h2>
     <p style="color:#888; margin-bottom: 30px; line-height: 1.6;">
       스마트한 업무 관리를 위해<br>아래 버튼을 눌러 앱을 설치하세요.
@@ -118,7 +119,7 @@
   </div>
 
   <div id="loading-ui" class="full-screen">
-    <img src="icon.png" class="icon-preview" style="width:80px; height:80px; box-shadow:none; opacity:0.5;">
+    <img src="./icon.png?v=2" class="icon-preview" style="width:80px; height:80px; box-shadow:none; opacity:0.5;">
     <div class="flowing-text">FLOWING...</div>
     <div class="fallback-msg" onclick="window.location.href=APP_URL">페이지가 멈췄다면 여기를 터치하세요.</div>
   </div>
