@@ -5,8 +5,12 @@
   <title>Task Flow</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   
-  <link rel="apple-touch-icon" href="icon.png">
-  <link rel="icon" type="image/png" href="icon.png">
+  <!-- 수정된 코드: 파비콘 호환성 강화 및 캐시 무효화(?v=1) 적용 -->
+  <!-- 브라우저가 예전 이미지를 기억하지 못하도록 파일명 뒤에 ?v=1 이라는 꼬리표를 붙입니다. -->
+  <link rel="apple-touch-icon" sizes="180x180" href="icon.png?v=1">
+  <link rel="icon" type="image/png" sizes="32x32" href="icon.png?v=1">
+  <link rel="icon" type="image/png" sizes="16x16" href="icon.png?v=1">
+  <link rel="shortcut icon" href="icon.png?v=1">
   
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
