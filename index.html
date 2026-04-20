@@ -144,7 +144,7 @@
     .then(r => r.json())
     .then(v => {
       var el = document.getElementById('app-version-info');
-      if (el) el.textContent = 'Rev. ' + v.rev + ' · ' + v.releaseDate;
+      if (el) el.textContent = 'Rev. ' + v.rev + ' · ' + v.releaseDate + (v.releaseTime ? ' ' + v.releaseTime : '');
     })
     .catch(() => {});
 </script>
