@@ -1,7 +1,7 @@
 {
-  "rev": 1,
+  "rev": 2,
   "releaseDate": "2026-04-20",
-  "releaseTime": "13:23",
-  "title": "Initial release",
+  "releaseTime": "15:14",
+  "title": "업데이트 내역 확인 모달 추가",
   "notes": "TaskFlow 최초 배포 — 개인 업무 관리 기능"
 }
