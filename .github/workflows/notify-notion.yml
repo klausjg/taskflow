@@ -1,0 +1,96 @@
+name: Notify Notion on Release
+
+# 이 워크플로우는 언제 실행되는가?
+on:
+  release:
+    types: [published]       # GitHub에서 "Release"를 publish 할 때 자동 실행
+  workflow_dispatch: {}      # GitHub Actions 탭에서 수동으로도 실행 가능 (테스트용)
+
+jobs:
+  notify-notion:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Read version.json
+        id: version
+        run: |
+          if [ ! -f version.json ]; then
+            echo "❌ version.json 파일이 레포 루트에 없습니다. 2단계를 먼저 완료해주세요."
+            exit 1
+          fi
+          REV=$(jq -r '.rev' version.json)
+          DATE=$(jq -r '.releaseDate' version.json)
+          TIME=$(jq -r '.releaseTime // ""' version.json)
+          TITLE=$(jq -r '.title // "Release"' version.json)
+          NOTES=$(jq -r '.notes // ""' version.json)
+
+          # Notion "배포일" 속성에 넣을 문자열
+          # releaseTime 있으면 ISO(KST) 형식으로 날짜+시간 전달, 없으면 날짜만
+          if [ -n "$TIME" ]; then
+            ISO_DATE="${DATE}T${TIME}:00+09:00"
+          else
+            ISO_DATE="$DATE"
+          fi
+
+          echo "rev=$REV"           >> "$GITHUB_OUTPUT"
+          echo "date=$DATE"         >> "$GITHUB_OUTPUT"
+          echo "time=$TIME"         >> "$GITHUB_OUTPUT"
+          echo "iso_date=$ISO_DATE" >> "$GITHUB_OUTPUT"
+          echo "title=$TITLE"       >> "$GITHUB_OUTPUT"
+          echo "notes=$NOTES"       >> "$GITHUB_OUTPUT"
+          echo "읽은 값: Rev.$REV ($ISO_DATE) - $TITLE"
+
+      - name: Create Notion Release entry
+        env:
+          NOTION_TOKEN:     ${{ secrets.NOTION_TOKEN }}
+          NOTION_DB_ID:     ${{ secrets.NOTION_RELEASES_DB_ID }}
+          APP_NAME:         ${{ vars.APP_NAME }}
+          APP_PAGE_ID:      ${{ vars.APP_PAGE_ID }}
+          REV:              ${{ steps.version.outputs.rev }}
+          DATE:             ${{ steps.version.outputs.date }}
+          ISO_DATE:         ${{ steps.version.outputs.iso_date }}
+          TITLE:            ${{ steps.version.outputs.title }}
+          NOTES:            ${{ steps.version.outputs.notes }}
+          RELEASE_URL:      ${{ github.event.release.html_url }}
+        run: |
+          PAYLOAD=$(jq -n \
+            --arg db_id "$NOTION_DB_ID" \
+            --arg app_page_id "$APP_PAGE_ID" \
+            --arg rev_name "$APP_NAME Rev. $REV — $TITLE" \
+            --argjson rev_num "$REV" \
+            --arg release_date "$ISO_DATE" \
+            --arg summary "$NOTES" \
+            --arg release_url "$RELEASE_URL" \
+            '{
+              parent: { database_id: $db_id },
+              properties: {
+                "리비전명": { title: [{ text: { content: $rev_name } }] },
+                "앱": { relation: [{ id: $app_page_id }] },
+                "리비전 번호": { number: $rev_num },
+                "배포일": { date: { start: $release_date } },
+                "요약": { rich_text: [{ text: { content: $summary } }] },
+                "GitHub Release": ( if $release_url == "" then null else { url: $release_url } end )
+              } | with_entries(select(.value != null))
+            }')
+
+          echo "보낼 데이터:"
+          echo "$PAYLOAD" | jq .
+
+          HTTP_RESPONSE=$(curl -s -w "\n%{http_code}" -X POST https://api.notion.com/v1/pages \
+            -H "Authorization: Bearer $NOTION_TOKEN" \
+            -H "Notion-Version: 2022-06-28" \
+            -H "Content-Type: application/json" \
+            -d "$PAYLOAD")
+
+          HTTP_CODE=$(echo "$HTTP_RESPONSE" | tail -n1)
+          BODY=$(echo "$HTTP_RESPONSE" | sed '$d')
+
+          if [ "$HTTP_CODE" != "200" ]; then
+            echo "❌ Notion API 오류 (HTTP $HTTP_CODE)"
+            echo "$BODY" | jq . || echo "$BODY"
+            exit 1
+          fi
+
+          echo "✅ Notion Releases DB에 $APP_NAME Rev. $REV 기록 완료"
