@@ -12,12 +12,12 @@ on:
         required: true
         type: string
       notes:
-        description: "릴리즈 노트 (선택)"
+        description: "릴리즈 노트 (마크다운, 여러 줄 가능)"
         required: false
         type: string
 
 permissions:
-  contents: write  # 커밋/태그/릴리즈 생성 권한
+  contents: write
 
 jobs:
   bump:
@@ -30,47 +30,57 @@ jobs:
 
       - name: Update version.json
         id: bump
+        env:
+          INPUT_REV:   ${{ inputs.rev }}
+          INPUT_TITLE: ${{ inputs.title }}
+          INPUT_NOTES: ${{ inputs.notes }}
         shell: bash
         run: |
           set -e
           CUR=$(python3 -c "import json;print(json.load(open('version.json'))['rev'])")
-          if [ -z "${{ inputs.rev }}" ]; then
+          if [ -z "$INPUT_REV" ]; then
             NEW=$((CUR + 1))
           else
-            NEW=${{ inputs.rev }}
+            NEW="$INPUT_REV"
           fi
-          DATE=$(TZ=Asia/Seoul date +%Y-%m-%d)
-          TIME=$(TZ=Asia/Seoul date +%H:%M)
-          TITLE='${{ inputs.title }}'
-          NOTES='${{ inputs.notes }}'
-          python3 - <<PY
+          export NEW_REV="$NEW"
+          export DATE="$(TZ=Asia/Seoul date +%Y-%m-%d)"
+          export TIME="$(TZ=Asia/Seoul date +%H:%M)"
+          python3 - <<'PY'
           import json, os
           p = 'version.json'
           d = json.load(open(p, encoding='utf-8'))
-          d['rev']          = $NEW
-          d['releaseDate']  = "$DATE"
-          d['releaseTime']  = "$TIME"
-          d['title']        = """$TITLE"""
-          if """$NOTES""".strip():
-              d['notes']    = """$NOTES"""
+          d['rev']         = int(os.environ['NEW_REV'])
+          d['releaseDate'] = os.environ['DATE']
+          d['releaseTime'] = os.environ['TIME']
+          d['title']       = os.environ['INPUT_TITLE']
+          notes = os.environ.get('INPUT_NOTES', '').strip()
+          if notes:
+              d['notes']   = notes
           json.dump(d, open(p, 'w', encoding='utf-8'),
                     ensure_ascii=False, indent=2)
+          open(p, 'a', encoding='utf-8').write('\n')
           PY
+          printf '%s' "$INPUT_NOTES" > /tmp/release_notes.md
           echo "new_rev=$NEW" >> "$GITHUB_OUTPUT"
 
       - name: Commit & tag
+        env:
+          NEW_REV: ${{ steps.bump.outputs.new_rev }}
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add version.json
-          git commit -m "chore: bump to rev-${{ steps.bump.outputs.new_rev }}"
-          git tag "rev-${{ steps.bump.outputs.new_rev }}"
+          git commit -m "chore: bump to rev-$NEW_REV"
+          git tag "rev-$NEW_REV"
           git push origin HEAD --tags
 
       - name: Create GitHub Release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NEW_REV:  ${{ steps.bump.outputs.new_rev }}
+          TITLE:    ${{ inputs.title }}
         run: |
-          gh release create "rev-${{ steps.bump.outputs.new_rev }}" \
-            --title "Rev. ${{ steps.bump.outputs.new_rev }} - ${{ inputs.title }}" \
-            --notes "${{ inputs.notes }}"
+          gh release create "rev-$NEW_REV" \
+            --title "Rev. $NEW_REV - $TITLE" \
+            --notes-file /tmp/release_notes.md
