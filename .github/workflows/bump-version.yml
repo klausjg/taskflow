@@ -83,10 +83,25 @@ jobs:
           PY
           echo "new_rev=$NEW" >> "$GITHUB_OUTPUT"
 
-      - name: Clear RELEASE_NOTES.md (if used)
+      - name: Reset RELEASE_NOTES.md to template
         if: steps.notes.outputs.source == 'file'
         run: |
-          : > RELEASE_NOTES.md
+          cat > RELEASE_NOTES.md <<'EOF'
+          ## 🎉 이번 릴리즈 요약
+          - 
+
+          ## ✨ 추가된 기능
+          - 
+
+          ## 🔧 변경/개선
+          - 
+
+          ## 🐛 수정된 문제
+          - 
+
+          ## 📝 기타
+          - 
+          EOF
 
       - name: Commit & tag
         env:
