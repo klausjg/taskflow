@@ -12,7 +12,7 @@ on:
         required: true
         type: string
       notes:
-        description: "릴리즈 노트 (마크다운, 여러 줄 가능)"
+        description: "(선택) 짧은 노트. 비우면 RELEASE_NOTES.md 사용"
         required: false
         type: string
 
@@ -28,12 +28,32 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Prepare release notes
+        id: notes
+        env:
+          INPUT_NOTES: ${{ inputs.notes }}
+        shell: bash
+        run: |
+          set -e
+          if [ -n "$INPUT_NOTES" ]; then
+            printf '%s' "$INPUT_NOTES" > /tmp/release_notes.md
+            echo "source=input" >> "$GITHUB_OUTPUT"
+          elif [ -f RELEASE_NOTES.md ] && [ -s RELEASE_NOTES.md ]; then
+            cp RELEASE_NOTES.md /tmp/release_notes.md
+            echo "source=file" >> "$GITHUB_OUTPUT"
+          else
+            printf '' > /tmp/release_notes.md
+            echo "source=empty" >> "$GITHUB_OUTPUT"
+          fi
+          echo "----- release notes preview -----"
+          cat /tmp/release_notes.md
+          echo "---------------------------------"
+
       - name: Update version.json
         id: bump
         env:
           INPUT_REV:   ${{ inputs.rev }}
           INPUT_TITLE: ${{ inputs.title }}
-          INPUT_NOTES: ${{ inputs.notes }}
         shell: bash
         run: |
           set -e
@@ -54,15 +74,19 @@ jobs:
           d['releaseDate'] = os.environ['DATE']
           d['releaseTime'] = os.environ['TIME']
           d['title']       = os.environ['INPUT_TITLE']
-          notes = os.environ.get('INPUT_NOTES', '').strip()
+          notes = open('/tmp/release_notes.md', encoding='utf-8').read().strip()
           if notes:
               d['notes']   = notes
           json.dump(d, open(p, 'w', encoding='utf-8'),
                     ensure_ascii=False, indent=2)
           open(p, 'a', encoding='utf-8').write('\n')
           PY
-          printf '%s' "$INPUT_NOTES" > /tmp/release_notes.md
           echo "new_rev=$NEW" >> "$GITHUB_OUTPUT"
+
+      - name: Clear RELEASE_NOTES.md (if used)
+        if: steps.notes.outputs.source == 'file'
+        run: |
+          : > RELEASE_NOTES.md
 
       - name: Commit & tag
         env:
@@ -70,7 +94,7 @@ jobs:
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add version.json
+          git add version.json RELEASE_NOTES.md 2>/dev/null || git add version.json
           git commit -m "chore: bump to rev-$NEW_REV"
           git tag "rev-$NEW_REV"
           git push origin HEAD --tags
