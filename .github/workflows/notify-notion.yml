@@ -53,15 +53,31 @@ jobs:
           ISO_DATE:         ${{ steps.version.outputs.iso_date }}
           TITLE:            ${{ steps.version.outputs.title }}
           NOTES:            ${{ steps.version.outputs.notes }}
+          RELEASE_BODY:     ${{ github.event.release.body }}
           RELEASE_URL:      ${{ github.event.release.html_url }}
         run: |
+          # 옵션 C (하이브리드): GitHub Release 본문이 있으면 그걸 "요약"에 넣고,
+          # 비어있으면 version.json 의 notes 로 폴백 (수동 테스트 등)
+          if [ -n "${RELEASE_BODY// /}" ]; then
+            SUMMARY="$RELEASE_BODY"
+            echo "요약 소스: GitHub Release body"
+          else
+            SUMMARY="$NOTES"
+            echo "요약 소스: version.json notes (Release body 비어있음 또는 수동실행)"
+          fi
+
+          # Notion rich_text 는 블록당 2000자 제한 → 넘으면 잘라서 경고 붙임
+          if [ "${#SUMMARY}" -gt 1990 ]; then
+            SUMMARY="${SUMMARY:0:1990}…(이하 생략, 전체 내용은 GitHub Release 참조)"
+          fi
+
           PAYLOAD=$(jq -n \
             --arg db_id "$NOTION_DB_ID" \
             --arg app_page_id "$APP_PAGE_ID" \
             --arg rev_name "$APP_NAME Rev. $REV — $TITLE" \
             --argjson rev_num "$REV" \
             --arg release_date "$ISO_DATE" \
-            --arg summary "$NOTES" \
+            --arg summary "$SUMMARY" \
             --arg release_url "$RELEASE_URL" \
             '{
               parent: { database_id: $db_id },
