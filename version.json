@@ -1,7 +1,7 @@
 {
-  "rev": 5,
+  "rev": 6,
   "releaseDate": "2026-04-20",
-  "releaseTime": "16:24",
-  "title": "노션 워크플로 버그 수정",
-  "notes": "- 노션 워크플로 버그 수정"
+  "releaseTime": "16:29",
+  "title": "release note test",
+  "notes": "- release note test"
 }
