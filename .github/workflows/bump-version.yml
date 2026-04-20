@@ -1,0 +1,76 @@
+name: Bump version & release
+
+on:
+  workflow_dispatch:
+    inputs:
+      rev:
+        description: "새 rev 번호 (비워두면 자동 +1)"
+        required: false
+        type: string
+      title:
+        description: "릴리즈 타이틀 (한 줄)"
+        required: true
+        type: string
+      notes:
+        description: "릴리즈 노트 (선택)"
+        required: false
+        type: string
+
+permissions:
+  contents: write  # 커밋/태그/릴리즈 생성 권한
+
+jobs:
+  bump:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Update version.json
+        id: bump
+        shell: bash
+        run: |
+          set -e
+          CUR=$(python3 -c "import json;print(json.load(open('version.json'))['rev'])")
+          if [ -z "${{ inputs.rev }}" ]; then
+            NEW=$((CUR + 1))
+          else
+            NEW=${{ inputs.rev }}
+          fi
+          DATE=$(TZ=Asia/Seoul date +%Y-%m-%d)
+          TIME=$(TZ=Asia/Seoul date +%H:%M)
+          TITLE='${{ inputs.title }}'
+          NOTES='${{ inputs.notes }}'
+          python3 - <<PY
+          import json, os
+          p = 'version.json'
+          d = json.load(open(p, encoding='utf-8'))
+          d['rev']          = $NEW
+          d['releaseDate']  = "$DATE"
+          d['releaseTime']  = "$TIME"
+          d['title']        = """$TITLE"""
+          if """$NOTES""".strip():
+              d['notes']    = """$NOTES"""
+          json.dump(d, open(p, 'w', encoding='utf-8'),
+                    ensure_ascii=False, indent=2)
+          PY
+          echo "new_rev=$NEW" >> "$GITHUB_OUTPUT"
+
+      - name: Commit & tag
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add version.json
+          git commit -m "chore: bump to rev-${{ steps.bump.outputs.new_rev }}"
+          git tag "rev-${{ steps.bump.outputs.new_rev }}"
+          git push origin HEAD --tags
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create "rev-${{ steps.bump.outputs.new_rev }}" \
+            --title "Rev. ${{ steps.bump.outputs.new_rev }} - ${{ inputs.title }}" \
+            --notes "${{ inputs.notes }}"
