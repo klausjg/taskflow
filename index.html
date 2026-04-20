@@ -136,4 +136,16 @@
   </div>
 
 </body>
+  <div id="app-version-info" style="position:fixed;bottom:8px;right:12px;font-size:11px;color:#888;opacity:0.6;">
+  &nbsp;
+</div>
+<script>
+  fetch('./version.json?t=' + Date.now())
+    .then(r => r.json())
+    .then(v => {
+      var el = document.getElementById('app-version-info');
+      if (el) el.textContent = 'Rev. ' + v.rev + ' · ' + v.releaseDate;
+    })
+    .catch(() => {});
+</script>
 </html>
