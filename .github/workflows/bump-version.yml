@@ -16,110 +16,12 @@ on:
         required: false
         type: string
 
-permissions:
-  contents: write
-
 jobs:
   bump:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v5
-        with:
-          fetch-depth: 0
-
-      - name: Prepare release notes
-        id: notes
-        env:
-          INPUT_NOTES: ${{ inputs.notes }}
-        shell: bash
-        run: |
-          set -e
-          if [ -n "$INPUT_NOTES" ]; then
-            printf '%s' "$INPUT_NOTES" > /tmp/release_notes.md
-            echo "source=input" >> "$GITHUB_OUTPUT"
-          elif [ -f RELEASE_NOTES.md ] && [ -s RELEASE_NOTES.md ]; then
-            cp RELEASE_NOTES.md /tmp/release_notes.md
-            echo "source=file" >> "$GITHUB_OUTPUT"
-          else
-            printf '' > /tmp/release_notes.md
-            echo "source=empty" >> "$GITHUB_OUTPUT"
-          fi
-          echo "----- release notes preview -----"
-          cat /tmp/release_notes.md
-          echo "---------------------------------"
-
-      - name: Update version.json
-        id: bump
-        env:
-          INPUT_REV:   ${{ inputs.rev }}
-          INPUT_TITLE: ${{ inputs.title }}
-        shell: bash
-        run: |
-          set -e
-          CUR=$(python3 -c "import json;print(json.load(open('version.json'))['rev'])")
-          if [ -z "$INPUT_REV" ]; then
-            NEW=$((CUR + 1))
-          else
-            NEW="$INPUT_REV"
-          fi
-          export NEW_REV="$NEW"
-          export DATE="$(TZ=Asia/Seoul date +%Y-%m-%d)"
-          export TIME="$(TZ=Asia/Seoul date +%H:%M)"
-          python3 - <<'PY'
-          import json, os
-          p = 'version.json'
-          d = json.load(open(p, encoding='utf-8'))
-          d['rev']         = int(os.environ['NEW_REV'])
-          d['releaseDate'] = os.environ['DATE']
-          d['releaseTime'] = os.environ['TIME']
-          d['title']       = os.environ['INPUT_TITLE']
-          notes = open('/tmp/release_notes.md', encoding='utf-8').read().strip()
-          if notes:
-              d['notes']   = notes
-          json.dump(d, open(p, 'w', encoding='utf-8'),
-                    ensure_ascii=False, indent=2)
-          open(p, 'a', encoding='utf-8').write('\n')
-          PY
-          echo "new_rev=$NEW" >> "$GITHUB_OUTPUT"
-
-      - name: Reset RELEASE_NOTES.md to template
-        if: steps.notes.outputs.source == 'file'
-        run: |
-          cat > RELEASE_NOTES.md <<'EOF'
-          ## 🎉 이번 릴리즈 요약
-          - 
-
-          ## ✨ 추가된 기능
-          - 
-
-          ## 🔧 변경/개선
-          - 
-
-          ## 🐛 수정된 문제
-          - 
-
-          ## 📝 기타
-          - 
-          EOF
-
-      - name: Commit & tag
-        env:
-          NEW_REV: ${{ steps.bump.outputs.new_rev }}
-        run: |
-          git config user.name  "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add version.json RELEASE_NOTES.md 2>/dev/null || git add version.json
-          git commit -m "chore: bump to rev-$NEW_REV"
-          git tag "rev-$NEW_REV"
-          git push origin HEAD --tags
-
-      - name: Create GitHub Release
-        env:
-          GH_TOKEN: ${{ secrets.RELEASE_PAT }}
-          NEW_REV:  ${{ steps.bump.outputs.new_rev }}
-          TITLE:    ${{ inputs.title }}
-        run: |
-          gh release create "rev-$NEW_REV" \
-            --title "Rev. $NEW_REV - $TITLE" \
-            --notes-file /tmp/release_notes.md
+    uses: klausjg/flow-workflows/.github/workflows/bump-version.yml@main
+    with:
+      rev:   ${{ inputs.rev }}
+      title: ${{ inputs.title }}
+      notes: ${{ inputs.notes }}
+    secrets:
+      RELEASE_PAT: ${{ secrets.RELEASE_PAT }}
