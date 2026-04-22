@@ -79,13 +79,29 @@
   <script>
     const APP_URL = "https://script.google.com/macros/s/AKfycbxqcaUe4t4pUVgmIBMOPuLXEtW0bhqbVk-e1lx-tnSxKKLN3nOtXE14imUxUcDRuxKJYw/exec";
 
-    function init() {
+function init() {
       const isStandalone = window.navigator.standalone === true || 
                            window.matchMedia('(display-mode: standalone)').matches;
+
+      // 기기 감지
+      const ua = navigator.userAgent;
+      const isIOS = /iPad|iPhone|iPod/.test(ua) && !window.MSStream;
+      const isAndroid = /Android/.test(ua);
+      const isDesktop = !isIOS && !isAndroid;
 
       // 1. 모든 화면을 먼저 숨깁니다 (안전장치)
       document.getElementById('install-ui').style.display = 'none';
       document.getElementById('loading-ui').style.display = 'none';
+
+      // [PC] 데스크톱에서 브라우저로 접속 → 설치 안내 없이 바로 GAS로
+      if (isDesktop && !isStandalone) {
+        const loadingUI = document.getElementById('loading-ui');
+        loadingUI.style.display = 'flex';
+        setTimeout(function() {
+          window.location.href = APP_URL;
+        }, 300);
+        return;
+      }
 
       if (isStandalone) {
         // [실행 모드] 로딩 화면만 표시
