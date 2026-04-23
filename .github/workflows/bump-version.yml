@@ -8,8 +8,8 @@ on:
         required: false
         type: string
       title:
-        description: "릴리즈 타이틀 (한 줄)"
-        required: true
+        description: "릴리즈 타이틀 (비우면 RELEASE_NOTES.md의 '이번 릴리즈 요약' 자동 사용)"
+        required: false
         type: string
       notes:
         description: "(선택) 짧은 노트. 비우면 RELEASE_NOTES.md 사용"
@@ -20,7 +20,7 @@ jobs:
   bump:
     uses: klausjg/flow-workflows/.github/workflows/bump-version.yml@main
     with:
-      rev:   ${{ inputs.rev }}
+      rev: ${{ inputs.rev }}
       title: ${{ inputs.title }}
       notes: ${{ inputs.notes }}
     secrets:
