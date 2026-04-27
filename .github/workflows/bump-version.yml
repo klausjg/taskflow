@@ -23,5 +23,6 @@ jobs:
       rev: ${{ inputs.rev }}
       title: ${{ inputs.title }}
       notes: ${{ inputs.notes }}
+      source_repo: klausjg/taskflow-source
     secrets:
       RELEASE_PAT: ${{ secrets.RELEASE_PAT }}

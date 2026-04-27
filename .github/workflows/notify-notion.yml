@@ -12,5 +12,7 @@ jobs:
       app_name:    "TaskFlow"
       app_page_id: "348b783a-96a1-81a2-a776-fef707ffe71e"
     secrets:
-      NOTION_TOKEN:          ${{ secrets.NOTION_TOKEN }}
-      NOTION_RELEASES_DB_ID: ${{ secrets.NOTION_RELEASES_DB_ID }}
+      NOTION_TOKEN:            ${{ secrets.NOTION_TOKEN }}
+      NOTION_RELEASES_DB_ID:   ${{ secrets.NOTION_RELEASES_DB_ID }}
+      GAS_RELEASE_WEBHOOK_URL: ${{ secrets.GAS_RELEASE_WEBHOOK_URL }}
+      GAS_RELEASE_SECRET:      ${{ secrets.GAS_RELEASE_SECRET }}
