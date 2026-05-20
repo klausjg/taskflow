@@ -1,4 +1,4 @@
-name: Bump version & release
+name: TaskFlow Release
 
 on:
   workflow_dispatch:
@@ -16,6 +16,10 @@ on:
         required: false
         type: string
 
+permissions:
+  contents: write
+  models: read
+
 jobs:
   bump:
     uses: klausjg/flow-workflows/.github/workflows/bump-version.yml@main
@@ -23,6 +27,9 @@ jobs:
       rev: ${{ inputs.rev }}
       title: ${{ inputs.title }}
       notes: ${{ inputs.notes }}
+      app_name: "TaskFlow"
+      app_description: "작업 흐름 관리 앱"
+      fallback_title: "TaskFlow 업데이트"
       source_repo: klausjg/taskflow-source
     secrets:
       RELEASE_PAT: ${{ secrets.RELEASE_PAT }}
